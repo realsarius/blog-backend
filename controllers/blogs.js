@@ -22,7 +22,7 @@ blogsRouter.get("/:id", async (request, response, next) => {
 
 })
 
-blogsRouter.delete("/:id", tokenExtractor, async (request, response) => {
+blogsRouter.delete("/:id", async (request, response) => {
     const blog = await Blog.findById(request.params.id);
 
     if (!blog) {
@@ -38,7 +38,7 @@ blogsRouter.delete("/:id", tokenExtractor, async (request, response) => {
 });
 
 
-blogsRouter.post('/', tokenExtractor, async (request, response) => {
+blogsRouter.post('/', async (request, response) => {
     const body = request.body;
 
     if (!request.user || !request.user.id) {

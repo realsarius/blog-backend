@@ -44,7 +44,7 @@ usersRouter.post("/", async (req, res) => {
     return res.status(201).json(savedUser);
 })
 
-usersRouter.delete("/:id", tokenExtractor, async (request, response) => {
+usersRouter.delete("/:id", async (request, response) => {
     const deletedUser = await User.findByIdAndDelete(request.params.id)
 
     if (deletedUser) {
