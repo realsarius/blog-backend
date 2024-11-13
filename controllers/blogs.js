@@ -33,18 +33,39 @@ blogsRouter.get('/:id', async (request, response) => {
 });
 
 blogsRouter.delete('/:id', tokenExtractor, async (request, response) => {
-    const blog = await Blog.findById(request.params.id);
+    try {
+        const blog = await Blog.findById(request.params.id).populate('user', { username: 1, name: 1, id: 1 });
 
-    if (!blog) {
-        return response.status(404).json({ code: '404', error: `Blog with the ID ${request.params.id} not found` });
+        if (!blog) {
+            return response.status(404).json({
+                code: '404',
+                error: `Blog with the ID ${request.params.id} not found`,
+            });
+        }
+
+        if (blog.user.id !== request.user.id) {
+            return response.status(403).json({
+                code: '403',
+                error: 'Only the creator can delete this blog',
+            });
+        }
+
+        await Blog.findByIdAndDelete(request.params.id);
+
+        response.status(204).json({
+            code: '204',
+            message: 'Blog successfully deleted',
+            blog,
+        });
+
+    } catch (error) {
+        console.error('Error deleting blog:', error);
+        // Could be if blog doesn't have a User associated
+        response.status(500).json({
+            code: '500',
+            error: 'An error occurred while deleting the blog',
+        });
     }
-
-    if (blog.user.toString() !== request.user.id) {
-        return response.status(403).json({ code: '403', error: 'Only the creator can delete this blog' });
-    }
-
-    await Blog.findByIdAndDelete(request.params.id);
-    response.status(204).json({ code: '204', message: 'Blog successfully deleted', blog });
 });
 
 
@@ -76,6 +97,10 @@ blogsRouter.post('/', tokenExtractor, async (request, response) => {
 blogsRouter.put('/:id', tokenExtractor, async (request, response) => {
     const body = request.body;
 
+    if (!request.user || !request.user.id) {
+        return response.status(401).json({ error: 'Invalid or missing user information' });
+    }
+
     const blog = {
         title: body.title,
         author: body.author,
@@ -86,5 +111,6 @@ blogsRouter.put('/:id', tokenExtractor, async (request, response) => {
     const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true });
     response.json(updatedBlog);
 });
+
 
 module.exports = blogsRouter;
