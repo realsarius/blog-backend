@@ -80,7 +80,7 @@ blogsRouter.post('/', tokenExtractor, async (request, response) => {
 
     const blog = new Blog({
         title: body.title,
-        author: user.name,
+        author: body.author || user.name,
         url: body.url,
         likes: body.likes,
         user: user.id,
