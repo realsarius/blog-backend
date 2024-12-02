@@ -22,15 +22,17 @@ blogsRouter.get('/my', tokenExtractor, async (request, response) => {
 
 
 blogsRouter.get('/:id', async (request, response) => {
-    const theBlog = await Blog.findById(request.params.id);
+    const theBlog = await Blog.findById(request.params.id)
+        .populate('user', { username: 1, name: 1 })
+        .populate('comments.user', { username: 1, name: 1 });
 
     if (theBlog) {
         response.status(200).json(theBlog);
     } else {
         response.status(404).json({ error: 'Blog not found' });
     }
-
 });
+
 
 blogsRouter.delete('/:id', tokenExtractor, async (request, response) => {
     try {
@@ -112,5 +114,52 @@ blogsRouter.put('/:id', tokenExtractor, async (request, response) => {
     response.json(updatedBlog);
 });
 
+// Routes for the comments
+blogsRouter.get('/:id/comments', async (request, response) => {
+    try {
+        const blog = await Blog.findById(request.params.id).populate('comments.user', { username: 1, name: 1 });
+
+        if (!blog) {
+            return response.status(404).json({ error: 'Blog not found' });
+        }
+
+        response.status(200).json(blog.comments);
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        response.status(500).json({ error: 'An error occurred while fetching comments' });
+    }
+});
+
+blogsRouter.post('/:id/comments', tokenExtractor, async (request, response) => {
+    const { text } = request.body;
+
+    if (!text || text.trim().length === 0) {
+        return response.status(400).json({ error: 'Comment text is required' });
+    }
+
+    try {
+        const blog = await Blog.findById(request.params.id);
+
+        if (!blog) {
+            return response.status(404).json({ error: 'Blog not found' });
+        }
+
+        const user = request.user;
+
+        const comment = {
+            text,
+            user: user.id,
+            createdAt: new Date(),
+        };
+
+        blog.comments.push(comment);
+        await blog.save();
+
+        response.status(201).json(comment);
+    } catch (error) {
+        console.error('Error posting comment:', error);
+        response.status(500).json({ error: 'An error occurred while posting the comment' });
+    }
+});
 
 module.exports = blogsRouter;
