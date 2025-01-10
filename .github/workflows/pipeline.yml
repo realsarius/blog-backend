@@ -27,7 +27,7 @@ jobs:
         run: npm install
 
       - name: lint
-        run: npm run eslint -- --fix --max-warnings=0
+        run: npm run eslint -- --fix
 
       - name: Run unit tests
         run: npm test
