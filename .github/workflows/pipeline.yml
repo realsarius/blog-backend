@@ -23,6 +23,13 @@ jobs:
         with:
           node-version: 20
 
+      - name: Set up environment variables
+        run: |
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
+          echo "TEST_MONGODB_URI=${{ secrets.TEST_MONGODB_URI }}" >> .env
+          echo "SECRET=${{ secrets.SECRET }}" >> .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
+
       - name: npm install
         run: npm install
 
@@ -34,4 +41,3 @@ jobs:
 
       - name: e2e tests
         run: npm run test:e2e
-
