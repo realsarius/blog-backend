@@ -36,8 +36,11 @@ jobs:
       - name: lint
         run: npm run eslint -- --fix
 
-      - name: Run unit tests
-        run: npm test
+      - name: run integration tests
+        run: npm run test
 
-      - name: e2e tests
+      - name: install playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: run playwright e2e tests
         run: npm run test:e2e
